@@ -30,32 +30,47 @@
     <div id="result" style="display: none;">
         <h3>Kartınız Hazır!</h3>
         <img id="cardImage" src="" alt="Dijital Kart">
-        <a id="downloadBtn" href="" download="antakya_hatira_karti.png"><button style="background: #27ae60;">İNDİR</button></a>
+        <a id="downloadBtn" href="" target="_blank"><button style="background: #27ae60;">AÇ / İNDİR</button></a>
     </div>
 </div>
 
 <script>
+    // Fotoğrafı Base64 formatına çeviren yardımcı fonksiyon
+    const toBase64 = file => new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = error => reject(error);
+    });
+
     document.getElementById('cardForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         
-        const formData = new FormData();
-        formData.append('name', document.getElementById('name').value);
-        formData.append('surname', document.getElementById('surname').value);
-        formData.append('avatar', document.getElementById('avatar').files[0]);
+        const name = document.getElementById('name').value;
+        const surname = document.getElementById('surname').value;
+        const avatarFile = document.getElementById('avatar').files[0];
 
-        const response = await fetch('/api/generate-card', {
-            method: 'POST',
-            body: formData
-        });
+        try {
+            const avatarBase64 = await toBase64(avatarFile);
 
-        const data = await response.json();
-        if(data.success) {
-            document.getElementById('cardForm').style.display = 'none';
-            document.getElementById('cardImage').src = data.cardUrl;
-            document.getElementById('downloadBtn').href = data.cardUrl;
-            document.getElementById('result').style.display = 'block';
-        } else {
-            alert('Hata: ' + data.error);
+            const response = await fetch('/api/generate-card', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, surname, avatarBase64 })
+            });
+
+            const data = await response.json();
+            if(data.success) {
+                document.getElementById('cardForm').style.display = 'none';
+                document.getElementById('cardImage').src = data.cardUrl;
+                document.getElementById('downloadBtn').href = data.cardUrl;
+                document.getElementById('result').style.display = 'block';
+            } else {
+                alert('Hata: ' + data.error);
+            }
+        } catch (err) {
+            console.error(err);
+            alert('Görsel işlenirken bir hata oluştu.');
         }
     });
 </script>
