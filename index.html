@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Antakya Belediyesi - Dijital Hatıra Kartı</title>
+    <style>
+        body { font-family: sans-serif; background: #1a1a1a; color: white; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .container { background: #262626; padding: 30px; border-radius: 15px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        input, button { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: none; box-sizing: border-box; }
+        input[type="text"] { background: #333; color: white; }
+        button { background: #c0392b; color: white; font-weight: bold; cursor: pointer; font-size: 16px; }
+        button:hover { background: #e74c3c; }
+        #result img { width: 100%; border-radius: 10px; margin-top: 15px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Antakya İçin Bir İz Bırak</h2>
+    <p>Bilgilerini doldur, hatıra kartını hemen indir!</p>
+    
+    <form id="cardForm">
+        <input type="text" id="name" placeholder="Adınız" required>
+        <input type="text" id="surname" placeholder="Soyadınız" required>
+        <input type="file" id="avatar" accept="image/*" required>
+        <button type="submit">KARTIMI OLUŞTUR</button>
+    </form>
+
+    <div id="result" style="display: none;">
+        <h3>Kartınız Hazır!</h3>
+        <img id="cardImage" src="" alt="Dijital Kart">
+        <a id="downloadBtn" href="" download="antakya_hatira_karti.png"><button style="background: #27ae60;">İNDİR</button></a>
+    </div>
+</div>
+
+<script>
+    document.getElementById('cardForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const formData = new FormData();
+        formData.append('name', document.getElementById('name').value);
+        formData.append('surname', document.getElementById('surname').value);
+        formData.append('avatar', document.getElementById('avatar').files[0]);
+
+        const response = await fetch('/api/generate-card', {
+            method: 'POST',
+            body: formData
+        });
+
+        const data = await response.json();
+        if(data.success) {
+            document.getElementById('cardForm').style.display = 'none';
+            document.getElementById('cardImage').src = data.cardUrl;
+            document.getElementById('downloadBtn').href = data.cardUrl;
+            document.getElementById('result').style.display = 'block';
+        } else {
+            alert('Hata: ' + data.error);
+        }
+    });
+</script>
+</body>
+</html>
